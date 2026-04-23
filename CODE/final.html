@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>⚙️ MACHINE MANAGER - Gamedev.js Jam 2026</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a12;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+            padding: 16px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            background: #12121c;
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid #ff6b35;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            text-align: center;
+            color: #ff6b35;
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+
+        .theme {
+            text-align: center;
+            color: #ffaa44;
+            font-size: 12px;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        /* Score cards */
+        .scores {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .score-card {
+            flex: 1;
+            background: #0a0a12;
+            padding: 12px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid #2a2a3a;
+        }
+
+        .score-label {
+            color: #888;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .score-number {
+            color: #ff6b35;
+            font-size: 32px;
+            font-weight: bold;
+            line-height: 1;
+            margin-top: 5px;
+        }
+
+        .score-unit {
+            color: #666;
+            font-size: 11px;
+        }
+
+        /* Meters */
+        .meter {
+            margin-bottom: 20px;
+        }
+
+        .meter-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .temp-label { color: #ff884d; }
+        .pressure-label { color: #ffaa44; }
+
+        .meter-value {
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .meter-bar {
+            background: #0a0a12;
+            height: 28px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #2a2a3a;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 50%;
+            transition: width 0.1s ease;
+            border-radius: 14px;
+        }
+
+        .temp-fill {
+            background: linear-gradient(90deg, #00cc66, #ff4444);
+        }
+
+        .pressure-fill {
+            background: linear-gradient(90deg, #00cc66, #ffaa00);
+        }
+
+        .meter-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            font-size: 10px;
+            color: #666;
+        }
+
+        /* Buttons */
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            flex: 1;
+            background: #ff6b35;
+            border: none;
+            padding: 14px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: monospace;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-secondary {
+            background: #2a2a3a;
+        }
+
+        .btn-cool { background: #2a6b8f; }
+        .btn-vent { background: #8f6b2a; }
+
+        .btn-reset {
+            background: #3a2a2a;
+            width: 100%;
+            margin-top: 0;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            transform: none;
+        }
+
+        /* Message */
+        .message {
+            background: #0a0a12;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            text-align: center;
+            margin: 15px 0;
+            border-left: 3px solid #ff6b35;
+            color: #ccc;
+        }
+
+        /* NFT Section */
+        .nft-box {
+            background: #0a0a12;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 15px;
+            text-align: center;
+            border: 1px dashed #ff6b35;
+            display: none;
+        }
+
+        .nft-title {
+            color: #ffaa44;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .nft-info {
+            color: #aaa;
+            font-size: 11px;
+            margin-bottom: 10px;
+            word-break: break-word;
+        }
+
+        .btn-mint {
+            background: #00aa55;
+            margin-top: 5px;
+        }
+
+        /* Keyboard hint */
+        .hint {
+            text-align: center;
+            font-size: 10px;
+            color: #555;
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid #1a1a2a;
+        }
+
+        .hint span {
+            background: #1a1a2a;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin: 0 3px;
+            font-family: monospace;
+        }
+
+        /* Status colors */
+        .warning-text {
+            color: #ffaa44;
+        }
+
+        .danger-text {
+            color: #ff4444;
+        }
+
+        .success-text {
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+<div class="game">
+    <h1>⚙️ MACHINE MANAGER</h1>
+    <div class="theme">Gamedev.js Jam 2026 — THEME: MACHINES</div>
+
+    <!-- Score Panel -->
+    <div class="scores">
+        <div class="score-card">
+            <div class="score-label">⏱️ SURVIVAL</div>
+            <div class="score-number"><span id="timeScore">0</span></div>
+            <div class="score-unit">seconds</div>
+        </div>
+        <div class="score-card">
+            <div class="score-label">🏆 BEST</div>
+            <div class="score-number"><span id="bestScore">0</span></div>
+            <div class="score-unit">seconds</div>
+        </div>
+    </div>
+
+    <!-- Temperature Meter -->
+    <div class="meter">
+        <div class="meter-header">
+            <span class="temp-label">🌡️ TEMPERATURE</span>
+            <span class="meter-value" id="tempValue">50%</span>
+        </div>
+        <div class="meter-bar">
+            <div class="meter-fill temp-fill" id="tempFill" style="width: 50%"></div>
+        </div>
+        <div class="meter-labels">
+            <span>❄️ COLD</span>
+            <span>✅ SAFE</span>
+            <span>🔥 DANGER</span>
+        </div>
+    </div>
+
+    <!-- Pressure Meter -->
+    <div class="meter">
+        <div class="meter-header">
+            <span class="pressure-label">💨 PRESSURE</span>
+            <span class="meter-value" id="pressureValue">50%</span>
+        </div>
+        <div class="meter-bar">
+            <div class="meter-fill pressure-fill" id="pressureFill" style="width: 50%"></div>
+        </div>
+        <div class="meter-labels">
+            <span>⬇️ LOW</span>
+            <span>✅ SAFE</span>
+            <span>⚠️ CRITICAL</span>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="buttons">
+        <button class="btn btn-cool" id="coolBtn">❄️ COOL</button>
+        <button class="btn btn-vent" id="ventBtn">💨 VENT</button>
+    </div>
+    
+    <button class="btn btn-reset" id="resetBtn">🔄 RESTART</button>
+
+    <!-- Message Area -->
+    <div class="message" id="messageArea">
+        💡 Keep both meters in the SAFE zone
+    </div>
+
+    <!-- NFT Section (Ethereum Challenge) -->
+    <div class="nft-box" id="nftBox">
+        <div class="nft-title">✨ MACHINE NFT ✨</div>
+        <div class="nft-info" id="nftInfo">Complete a run to mint your NFT</div>
+        <button class="btn btn-mint" id="mintBtn" style="width: 100%;">🎨 MINT NFT</button>
+    </div>
+
+    <!-- Keyboard Hint -->
+    <div class="hint">
+        🎮 <span>C</span> = COOL &nbsp;&nbsp;|&nbsp;&nbsp; <span>V</span> = VENT &nbsp;&nbsp;|&nbsp;&nbsp; <span>R</span> = RESTART
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // MACHINE MANAGER - Gamedev.js Jam 2026
+    // Fully responsive, readable, jam-ready
+    // ============================================
+
+    // Game state
+    let temp = 50;
+    let pressure = 50;
+    let time = 0;
+    let gameRunning = true;
+    let gameInterval = null;
+    let bestTime = localStorage.getItem('machineBestTime') || 0;
+    let lastRunScore = 0;
+
+    // DOM elements
+    const tempFill = document.getElementById('tempFill');
+    const pressureFill = document.getElementById('pressureFill');
+    const tempValue = document.getElementById('tempValue');
+    const pressureValue = document.getElementById('pressureValue');
+    const timeScoreSpan = document.getElementById('timeScore');
+    const bestScoreSpan = document.getElementById('bestScore');
+    const messageArea = document.getElementById('messageArea');
+    const coolBtn = document.getElementById('coolBtn');
+    const ventBtn = document.getElementById('ventBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const nftBox = document.getElementById('nftBox');
+    const nftInfo = document.getElementById('nftInfo');
+    const mintBtn = document.getElementById('mintBtn');
+
+    // Set best score display
+    bestScoreSpan.innerText = bestTime;
+
+    // ============================================
+    // UPDATE DISPLAY
+    // ============================================
+    function updateDisplay() {
+        tempFill.style.width = Math.min(100, Math.max(0, temp)) + '%';
+        pressureFill.style.width = Math.min(100, Math.max(0, pressure)) + '%';
+        tempValue.innerText = Math.floor(temp) + '%';
+        pressureValue.innerText = Math.floor(pressure) + '%';
+        timeScoreSpan.innerText = time;
+    }
+
+    // ============================================
+    // CHECK GAME OVER
+    // ============================================
+    function checkGameOver() {
+        if (!gameRunning) return false;
+
+        let gameOverMsg = null;
+        let msgColor = "";
+
+        if (temp >= 100) {
+            gameOverMsg = "💥 MACHINE EXPLODED! Overheating!";
+        } else if (pressure >= 100) {
+            gameOverMsg = "💥 MACHINE BURST! Pressure overload!";
+        } else if (temp <= 0) {
+            gameOverMsg = "❄️ MACHINE FROZE! Too cold!";
+        } else if (pressure <= 0) {
+            gameOverMsg = "💀 VACUUM COLLAPSE! Pressure too low!";
+        }
+
+        if (gameOverMsg) {
+            gameRunning = false;
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = null;
+            }
+
+            // Update best time
+            if (time > bestTime) {
+                bestTime = time;
+                bestScoreSpan.innerText = bestTime;
+                localStorage.setItem('machineBestTime', bestTime);
+                gameOverMsg += " 🎉 NEW RECORD! 🎉";
+            }
+
+            messageArea.innerHTML = gameOverMsg;
+            messageArea.style.borderLeftColor = "#ff4444";
+
+            // Show NFT section
+            lastRunScore = time;
+            nftBox.style.display = "block";
+            nftInfo.innerHTML = `🏆 Survived ${time} seconds! Mint this machine as an NFT.`;
+            mintBtn.disabled = false;
+            mintBtn.innerHTML = "🎨 MINT NFT";
+            mintBtn.style.opacity = "1";
+
+            // Disable buttons
+            coolBtn.disabled = true;
+            ventBtn.disabled = true;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    // ============================================
+    // GAME LOOP
+    // ============================================
+    function gameLoop() {
+        if (!gameRunning) return;
+
+        // Difficulty increases over time
+        const difficulty = Math.min(1.8, 1 + (time / 100));
+
+        temp += (Math.random() * 2 + 1.5) * difficulty;
+        pressure += (Math.random() * 1.5 + 1) * difficulty;
+        time++;
+
+        updateDisplay();
+
+        // Update message based on danger level
+        if (temp > 85 || pressure > 85) {
+            messageArea.innerHTML = "⚠️ CRITICAL! Use COOL or VENT now! ⚠️";
+            messageArea.style.borderLeftColor = "#ff4444";
+        } else if (temp > 70 || pressure > 70) {
+            messageArea.innerHTML = "⚠️ Machine overheating! Take action! ⚠️";
+            messageArea.style.borderLeftColor = "#ffaa44";
+        } else if (time > 5) {
+            messageArea.innerHTML = `✅ Running smoothly... ${time} seconds ✅`;
+            messageArea.style.borderLeftColor = "#00ff88";
+        }
+
+        checkGameOver();
+    }
+
+    // ============================================
+    // ACTIONS
+    // ============================================
+    function coolMachine() {
+        if (!gameRunning) return;
+        temp -= 15;
+        if (temp < 0) temp = 0;
+        updateDisplay();
+        messageArea.innerHTML = "❄️ COOLING ACTIVATED! -15° Temp";
+        messageArea.style.borderLeftColor = "#00cc66";
+        setTimeout(() => {
+            if (gameRunning && temp < 70) {
+                messageArea.innerHTML = `✅ Running smoothly... ${time} seconds ✅`;
+                messageArea.style.borderLeftColor = "#00ff88";
+            }
+        }, 800);
+    }
+
+    function ventPressure() {
+        if (!gameRunning) return;
+        pressure -= 15;
+        if (pressure < 0) pressure = 0;
+        updateDisplay();
+        messageArea.innerHTML = "💨 VENTING! -15 PSI Pressure";
+        messageArea.style.borderLeftColor = "#ffaa00";
+        setTimeout(() => {
+            if (gameRunning && pressure < 70) {
+                messageArea.innerHTML = `✅ Running smoothly... ${time} seconds ✅`;
+                messageArea.style.borderLeftColor = "#00ff88";
+            }
+        }, 800);
+    }
+
+    // ============================================
+    // RESET GAME
+    // ============================================
+    function resetGame() {
+        if (gameInterval) {
+            clearInterval(gameInterval);
+            gameInterval = null;
+        }
+
+        temp = 50;
+        pressure = 50;
+        time = 0;
+        gameRunning = true;
+
+        updateDisplay();
+
+        messageArea.innerHTML = "🔄 Machine restarted! Keep both meters in the SAFE zone!";
+        messageArea.style.borderLeftColor = "#ff6b35";
+
+        nftBox.style.display = "none";
+        mintBtn.disabled = false;
+
+        coolBtn.disabled = false;
+        ventBtn.disabled = false;
+
+        gameInterval = setInterval(gameLoop, 200);
+    }
+
+    // ============================================
+    // MINT NFT (Ethereum Challenge)
+    // ============================================
+    function mintNFT() {
+        if (lastRunScore === 0) {
+            nftInfo.innerHTML = "❌ Complete a game first!";
+            return;
+        }
+
+        const nftId = "MACHINE-" + Date.now().toString(36).toUpperCase();
+        const nftPower = Math.floor(lastRunScore * 8) + Math.floor(Math.random() * 300);
+        let rarity = "COMMON";
+        if (lastRunScore > 50) rarity = "LEGENDARY";
+        else if (lastRunScore > 30) rarity = "EPIC";
+        else if (lastRunScore > 15) rarity = "RARE";
+
+        const nftData = {
+            id: nftId,
+            survivalTime: lastRunScore,
+            power: nftPower,
+            rarity: rarity,
+            timestamp: new Date().toLocaleString()
+        };
+
+        // Save to localStorage
+        const allNFTs = JSON.parse(localStorage.getItem('machineNFTs') || '[]');
+        allNFTs.push(nftData);
+        localStorage.setItem('machineNFTs', JSON.stringify(allNFTs));
+
+        nftInfo.innerHTML = `🎉 MINTED! 🎉<br>📜 ${nftId}<br>⚡ POWER: ${nftPower}<br>💎 ${rarity}<br>⏱️ ${lastRunScore} sec`;
+        mintBtn.disabled = true;
+        mintBtn.innerHTML = "✅ MINTED!";
+
+        console.log("%c🎨 NFT MINTED", "color: #ff6b35; font-size: 12px;");
+        console.log(nftData);
+    }
+
+    // ============================================
+    // KEYBOARD CONTROLS
+    // ============================================
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'c' || e.key === 'C') {
+            coolMachine();
+            e.preventDefault();
+        } else if (e.key === 'v' || e.key === 'V') {
+            ventPressure();
+            e.preventDefault();
+        } else if (e.key === 'r' || e.key === 'R') {
+            resetGame();
+            e.preventDefault();
+        }
+    });
+
+    // ============================================
+    // BUTTON EVENTS
+    // ============================================
+    coolBtn.addEventListener('click', coolMachine);
+    ventBtn.addEventListener('click', ventPressure);
+    resetBtn.addEventListener('click', resetGame);
+    mintBtn.addEventListener('click', mintNFT);
+
+    // ============================================
+    // START GAME
+    // ============================================
+    gameInterval = setInterval(gameLoop, 200);
+
+    console.log("%c⚙️ MACHINE MANAGER READY! ⚙️", "color: #ff6b35; font-size: 14px;");
+    console.log("Controls: C = Cool | V = Vent | R = Restart");
+</script>
+</body>
+</html>
