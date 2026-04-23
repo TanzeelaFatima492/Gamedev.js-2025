@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>⚙️ MACHINE MANAGER - Keep It Running!</title>
+    <style>
+        body {
+            background: #0a0a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+        }
+        .game {
+            background: #0f0f1a;
+            padding: 20px;
+            border-radius: 20px;
+            border: 2px solid #ff6b35;
+            text-align: center;
+        }
+        .meter {
+            width: 400px;
+            height: 30px;
+            background: #333;
+            border-radius: 15px;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+        .meter-fill {
+            height: 100%;
+            transition: width 0.1s;
+        }
+        .temp-fill { background: linear-gradient(90deg, #00ff88, #ff4444); }
+        .pressure-fill { background: linear-gradient(90deg, #00ff88, #ffaa00); }
+        button {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { transform: scale(1.05); }
+        .danger { color: #ff4444; animation: blink 0.5s infinite; }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .score { font-size: 32px; color: #ff6b35; margin: 10px; }
+    </style>
+</head>
+<body>
+<div class="game">
+    <h1>⚙️ MACHINE MANAGER ⚙️</h1>
+    <p>Keep BOTH meters in the GREEN zone!</p>
+    
+    <div class="score">⏱️ TIME: <span id="time">0</span> sec</div>
+    
+    <div>🌡️ TEMPERATURE</div>
+    <div class="meter"><div class="meter-fill temp-fill" id="tempFill" style="width: 50%"></div></div>
+    
+    <div>💨 PRESSURE</div>
+    <div class="meter"><div class="meter-fill pressure-fill" id="pressureFill" style="width: 50%"></div></div>
+    
+    <div style="margin: 20px;">
+        <button id="coolBtn">❄️ COOL (↓ Temp)</button>
+        <button id="ventBtn">💨 VENT (↓ Pressure)</button>
+    </div>
+    
+    <div style="margin: 20px;">
+        <button id="resetBtn">🔄 RESET</button>
+    </div>
+    
+    <div id="message" style="margin-top: 20px; font-size: 18px;"></div>
+</div>
+
+<script>
+    let temp = 50;
+    let pressure = 50;
+    let time = 0;
+    let gameRunning = true;
+    let interval;
+    
+    const tempFill = document.getElementById('tempFill');
+    const pressureFill = document.getElementById('pressureFill');
+    const timeSpan = document.getElementById('time');
+    const messageDiv = document.getElementById('message');
+    
+    function updateDisplay() {
+        tempFill.style.width = temp + '%';
+        pressureFill.style.width = pressure + '%';
+        timeSpan.innerText = time;
+        
+        // Color coding
+        if (temp > 80) tempFill.style.background = "#ff0000";
+        else if (temp > 60) tempFill.style.background = "#ff6600";
+        else tempFill.style.background = "#00ff88";
+        
+        if (pressure > 80) pressureFill.style.background = "#ff0000";
+        else if (pressure > 60) pressureFill.style.background = "#ffaa00";
+        else pressureFill.style.background = "#00ff88";
+    }
+    
+    function checkGameOver() {
+        if (temp > 100) {
+            gameRunning = false;
+            clearInterval(interval);
+            messageDiv.innerHTML = "💥 MACHINE EXPLODED! Game Over! 💥";
+            messageDiv.style.color = "#ff4444";
+            return true;
+        }
+        if (pressure > 100) {
+            gameRunning = false;
+            clearInterval(interval);
+            messageDiv.innerHTML = "💨 MACHINE BURST! Game Over! 💨";
+            messageDiv.style.color = "#ff4444";
+            return true;
+        }
+        if (temp < 0) {
+            gameRunning = false;
+            clearInterval(interval);
+            messageDiv.innerHTML = "❄️ MACHINE FROZE SOLID! Game Over! ❄️";
+            messageDiv.style.color = "#ff4444";
+            return true;
+        }
+        if (pressure < 0) {
+            gameRunning = false;
+            clearInterval(interval);
+            messageDiv.innerHTML = "💀 VACUUM COLLAPSE! Game Over! 💀";
+            messageDiv.style.color = "#ff4444";
+            return true;
+        }
+        return false;
+    }
+    
+    function gameLoop() {
+        if (!gameRunning) return;
+        
+        // Machine naturally heats up and builds pressure
+        temp += Math.random() * 3 + 1;
+        pressure += Math.random() * 2 + 1;
+        
+        time++;
+        
+        updateDisplay();
+        
+        if (checkGameOver()) return;
+        
+        // Success message at high scores
+        if (time > 30 && time < 35) messageDiv.innerHTML = "✅ Machine running smoothly! ✅";
+        if (time > 60 && time < 65) messageDiv.innerHTML = "🌟 You're a natural engineer! 🌟";
+        if (time > 100) messageDiv.innerHTML = "🏆 LEGENDARY OPERATOR! 🏆";
+    }
+    
+    function startGame() {
+        if (interval) clearInterval(interval);
+        gameRunning = true;
+        interval = setInterval(gameLoop, 200);
+    }
+    
+    document.getElementById('coolBtn').onclick = () => {
+        if (!gameRunning) return;
+        temp -= 15;
+        if (temp < 0) temp = 0;
+        updateDisplay();
+        checkGameOver();
+    };
+    
+    document.getElementById('ventBtn').onclick = () => {
+        if (!gameRunning) return;
+        pressure -= 15;
+        if (pressure < 0) pressure = 0;
+        updateDisplay();
+        checkGameOver();
+    };
+    
+    document.getElementById('resetBtn').onclick = () => {
+        temp = 50;
+        pressure = 50;
+        time = 0;
+        gameRunning = true;
+        messageDiv.innerHTML = "";
+        updateDisplay();
+        if (interval) clearInterval(interval);
+        interval = setInterval(gameLoop, 200);
+    };
+    
+    startGame();
+</script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔧 MACHINE REPAIR - Match the Parts!</title>
+    <style>
+        body {
+            background: #0a0a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+        }
+        .game {
+            background: #0f0f1a;
+            padding: 20px;
+            border-radius: 20px;
+            border: 2px solid #ff6b35;
+            text-align: center;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            gap: 10px;
+            margin: 20px auto;
+            justify-content: center;
+        }
+        .card {
+            width: 80px;
+            height: 80px;
+            background: #1a1a2e;
+            border: 2px solid #ff6b35;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .card:hover { transform: scale(1.05); background: #2a2a3e; }
+        .card.matched { opacity: 0.3; cursor: default; background: #0a0a1a; }
+        .card.selected { border: 3px solid #00ff88; transform: scale(1.05); }
+        .score { font-size: 24px; color: #ff6b35; margin: 10px; }
+        button {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="game">
+    <h1>🔧 MACHINE REPAIR SHOP 🔧</h1>
+    <p>Match the broken parts with their replacements!</p>
+    
+    <div class="score">🎯 MATCHES: <span id="matches">0</span> / 8</div>
+    <div class="score">⏱️ MOVES: <span id="moves">0</span></div>
+    
+    <div class="grid" id="grid"></div>
+    
+    <button id="resetBtn">🔄 NEW GAME</button>
+    <div id="message" style="margin-top: 15px;"></div>
+</div>
+
+<script>
+    const icons = ['⚙️', '🔧', '⚡', '🔄', '⚙️', '🔧', '⚡', '🔄'];
+    const names = ['Gear', 'Wrench', 'Battery', 'Belt', 'Gear', 'Wrench', 'Battery', 'Belt'];
+    let cards = [];
+    let matched = [];
+    let selectedIndex = null;
+    let matches = 0;
+    let moves = 0;
+    
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+    
+    function initGame() {
+        const shuffled = shuffleArray([...icons]);
+        cards = shuffled.map((icon, i) => ({ icon, name: names[i], matched: false }));
+        matched = new Array(8).fill(false);
+        selectedIndex = null;
+        matches = 0;
+        moves = 0;
+        updateDisplay();
+        renderGrid();
+        document.getElementById('message').innerHTML = '';
+    }
+    
+    function updateDisplay() {
+        document.getElementById('matches').innerText = matches;
+        document.getElementById('moves').innerText = moves;
+        
+        if (matches === 8) {
+            document.getElementById('message').innerHTML = '🎉 MACHINE FULLY REPAIRED! YOU WIN! 🎉';
+            document.getElementById('message').style.color = '#00ff88';
+        }
+    }
+    
+    function checkMatch(index1, index2) {
+        if (cards[index1].icon === cards[index2].icon) {
+            // Match!
+            cards[index1].matched = true;
+            cards[index2].matched = true;
+            matches++;
+            updateDisplay();
+            
+            // Play success sound
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.value = 880;
+                gain.gain.value = 0.1;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.2);
+                osc.stop(audioCtx.currentTime + 0.2);
+            } catch(e) {}
+            
+            return true;
+        }
+        return false;
+    }
+    
+    function handleCardClick(index) {
+        if (cards[index].matched) return;
+        if (matches === 8) return;
+        
+        if (selectedIndex === null) {
+            // First card selected
+            selectedIndex = index;
+            renderGrid();
+        } else if (selectedIndex === index) {
+            // Deselect
+            selectedIndex = null;
+            renderGrid();
+        } else {
+            // Second card - check match
+            moves++;
+            const isMatch = checkMatch(selectedIndex, index);
+            
+            if (!isMatch) {
+                // Wrong match - show briefly then reset
+                renderGrid();
+                setTimeout(() => {
+                    selectedIndex = null;
+                    renderGrid();
+                }, 800);
+            } else {
+                selectedIndex = null;
+                renderGrid();
+            }
+            updateDisplay();
+        }
+    }
+    
+    function renderGrid() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        
+        cards.forEach((card, i) => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            if (card.matched) div.classList.add('matched');
+            if (selectedIndex === i) div.classList.add('selected');
+            
+            if (card.matched) {
+                div.innerHTML = '✅';
+            } else {
+                div.innerHTML = card.icon;
+            }
+            
+            div.onclick = () => handleCardClick(i);
+            grid.appendChild(div);
+        });
+    }
+    
+    document.getElementById('resetBtn').onclick = initGame;
+    initGame();
+</script>
+</body>
+</html>
