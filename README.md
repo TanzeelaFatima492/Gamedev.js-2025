@@ -160,4 +160,3 @@ MIT License - Free to play, modify, and share.
 
 *Made with ⚙️ for Gamedev.js Jam 2026*
 
-## 🎮 Controls Reference
